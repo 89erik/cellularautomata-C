@@ -10,8 +10,7 @@
 #define     GENERATION_PRINT_AMOUNT     44
 
 /* Debug constants */
-#define     DEBUG
-#ifdef DEBUG
+#ifdef DEBUG_MAX
     #define     D(S) printf(S)
 #else
     #define     D(S) ;

@@ -16,32 +16,25 @@ rule_t* population;
 unsigned int generation;
 
 int main(void) {
-	D("HEI\n");
     random_init();
-    D("random ferdig\n");
 	time_t t0,tn;
     time(&t0);
-	D("time ferdig\n");
     start_GA();
-	D("ferdig med start_GA\n");
     time(&tn);
 
     printf("Total duration: %d seconds\n", (unsigned int)(tn-t0));
 }
 
 void start_GA(void) { 
-	D("inne i start_GA\n");
 #ifdef TEST_RULE
     //printRuleTest(new Rule(0x24981a0d6f83e2c9L, 0x1d716561593987b7L), 20); // TODO
     return;
 #endif
     generateInitialPopulation();
-	D("done generateInitialPopulation()\n");
     
     for (generation=1; generation<=GENERATIONS; generation++) {
         make_new_generation();
     }
-	D("Done make_new_generation() loop\n");
     int winner_index = fittestIndividual();
     rule_t winner = population[winner_index];
    
@@ -55,7 +48,6 @@ void start_GA(void) {
 }
 
 void generateInitialPopulation(void) {
-	D("start generateInitialPopulation()\n");
     int i;
 	p_buf = 0;
 	population = populations[p_buf];
@@ -70,9 +62,7 @@ void generateInitialPopulation(void) {
  * Point 3 of page 7 in paper by Mitchell.
  */
 void make_new_generation() {
-	D("Begins make_new_generation()\n");
     int totalFitness = calculateFitnesses();
-	D("Done calculateFitnesses()\n");
 	int i,j,k;
 	rule_t* next_population = populations[1-p_buf];
     
@@ -151,7 +141,6 @@ int calculateFitnesses() {
             if (singleFitness(i)) {
                 fitness++;
             }
-			D("Done singleFitness()\n");
         }
         population[i].fitness = fitness; 
         totalFitness += fitness;
@@ -162,13 +151,10 @@ int calculateFitnesses() {
 
 
 bool singleFitness(int individual) {
-	D("Begins singleFitness()\n");
     int sOnes, rOnes, sZeroes, rZeroes;
 	int i;    
 	init_line(population + individual);
-	D("Done init_line()\n");
     line_count(&sOnes, &sZeroes);
-	D("Done line_count()\n");
     if (sZeroes > sOnes) {
         sZeroes = sZeroes + sOnes;
         sOnes = 0;
@@ -178,16 +164,12 @@ bool singleFitness(int individual) {
     }
 
     for (i=0; i<STEPS_PER_FITNESS; i++) {
-		D("Begins line_is_stable()\n");
         if (!line_is_stable()) {
-			D("About to enter line_next()\n");
             line_next();
-			D("Done line_next\n");
         } else {
             break;
         }
     }
-	D("Done stepping through states\n");
     line_count(&rOnes, &rZeroes);
 
     return sZeroes == rZeroes && sOnes == rOnes;

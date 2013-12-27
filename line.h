@@ -9,6 +9,7 @@ void line_next();
 bool line_is_stable();
 void line_count(unsigned int* ones, unsigned int* zeroes);
 void line_print();
+unsigned int line_state_of_cell(int i);
 
 #endif
 

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include "cell.h"
 #include "line.h"
 #include "ga.h"
@@ -9,23 +10,8 @@ void cell_set_random_value(cell_t* cell) {
     cell->value = rand() > RAND_MAX/2;
 }
 
-void cell_set_right(cell_t* this, cell_t* right) {
-    this->right = right;
-    right->left = this;
-}
-
-void cell_find_next_value(cell_t* this, rule_t* rule) {
-	D("Begin cell_find_next_value()\n");
-    unsigned int currentState = (this->left->left->left->value  << 6) 
-                     | (this->left->left->value       << 5) 
-                     | (this->left->value            << 4) 
-                     | (this->value                  << 3) 
-                     | (this->right->value           << 2) 
-                     | (this->right->right->value     << 1) 
-                     | (this->right->right->right->value);
-    
-	D("cell find next value, about to call rule_effect()\n");
-    this->nextValue = rule_effect(rule, currentState);
+void cell_set_next_value(cell_t* this, rule_t* rule, unsigned int state) {
+    this->nextValue = rule_effect(rule, state);
 }
 
 void cell_go_to_next_state(cell_t* this) {

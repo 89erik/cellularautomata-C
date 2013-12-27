@@ -11,7 +11,6 @@
 rule_t* rule;
 bool line_has_ones;
 bool line_has_zeroes;
-bool initialized = false;
 
 cell_t cells[WIDTH];
 
@@ -20,26 +19,36 @@ int init_line(rule_t* r) {
     rule = r;
     for (i=0; i < WIDTH; i++) {
         cell_set_random_value(cells + i);
-        if (!initialized) { //TODO is this the best solution?
-            cell_set_right(cells + i, cells + right_index(i));
-            initialized = true;
-        }
     }
+}
+
+unsigned int line_state_of_cell(int i) {
+	int l1 = left_index(i);
+	int l2 = left_index(l1);
+	int l3 = left_index(l2);
+	int r1 = right_index(i);
+	int r2 = right_index(r1);
+	int r3 = right_index(r2);
+
+	return (cells[l3].value << 6)
+		 | (cells[l2].value << 5)
+         | (cells[l1].value << 4)
+         | (cells[i].value  << 3)
+         | (cells[r1].value << 2)
+         | (cells[r2].value << 1)
+         | (cells[r3].value);
 }
 
 void line_next() {
     int i;
     line_has_ones = false;
     line_has_zeroes = false;
-	D("About to enter cell_find_next_value() loop\n");
     for (i=0; i<WIDTH; i++) {
-        cell_find_next_value(cells+i, rule);
+        cell_set_next_value(cells+i, rule, line_state_of_cell(i));
     }
-	D("Done with cell_find_next_value() loop\n");
     for (i=0; i<WIDTH; i++) {
         cell_go_to_next_state(cells+i);
     }
-	D("about to return from line_next()\n");
 }
 
 bool line_is_stable() {
