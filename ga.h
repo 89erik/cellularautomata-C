@@ -9,6 +9,15 @@
 #define     GENERATION_PRINT_SEQUENCE   1
 #define     GENERATION_PRINT_AMOUNT     44
 
+/* Debug constants */
+#define     DEBUG
+#ifdef DEBUG
+    #define     D(S) printf(S)
+#else
+    #define     D(S) ;
+#endif
+
+
 /* GA constants */
 #define     POPULATION_SIZE             500
 #define     MUTATION_PROBABILITY        0.015 * RAND_MAX //TODO verify math

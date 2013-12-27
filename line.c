@@ -6,6 +6,7 @@
 #include "cell.h"
 
 #define right_index(i) ((i+1) < WIDTH ? i+1 : 0)
+#define left_index(i) ((i-1) >= 0 ? i-1 : WIDTH-1)
 
 rule_t* rule;
 bool line_has_ones;
@@ -30,12 +31,15 @@ void line_next() {
     int i;
     line_has_ones = false;
     line_has_zeroes = false;
+	D("About to enter cell_find_next_value() loop\n");
     for (i=0; i<WIDTH; i++) {
-        cell_find_next_value(cells+i);
+        cell_find_next_value(cells+i, rule);
     }
+	D("Done with cell_find_next_value() loop\n");
     for (i=0; i<WIDTH; i++) {
         cell_go_to_next_state(cells+i);
     }
+	D("about to return from line_next()\n");
 }
 
 bool line_is_stable() {

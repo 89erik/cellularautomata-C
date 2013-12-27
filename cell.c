@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "cell.h"
 #include "line.h"
+#include "ga.h"
 
 extern bool line_has_ones, line_has_zeroes;
 
@@ -13,7 +14,8 @@ void cell_set_right(cell_t* this, cell_t* right) {
     right->left = this;
 }
 
-void cell_find_next_value(cell_t* this) {
+void cell_find_next_value(cell_t* this, rule_t* rule) {
+	D("Begin cell_find_next_value()\n");
     unsigned int currentState = (this->left->left->left->value  << 6) 
                      | (this->left->left->value       << 5) 
                      | (this->left->value            << 4) 
@@ -22,8 +24,8 @@ void cell_find_next_value(cell_t* this) {
                      | (this->right->right->value     << 1) 
                      | (this->right->right->right->value);
     
-    rule_t rule; // TODO get rule
-    this->nextValue = rule_effect(&rule, currentState);
+	D("cell find next value, about to call rule_effect()\n");
+    this->nextValue = rule_effect(rule, currentState);
 }
 
 void cell_go_to_next_state(cell_t* this) {
