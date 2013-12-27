@@ -1,44 +1,43 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include "line.h"
+#include "rule.h"
+#include "cell.h"
+#include "ga.h"
+#include "random.h"
 
 /* Debug constants */
-#define     DEBUG                       false
-#define     SURVIVOR_STATS              false
-#define     GENERATION_PRINT_SEQUENCE   1
-#define     GENERATION_PRINT_AMOUNT     44
-
-/* GA constants */
-#define     POPULATION_SIZE             500
-#define     MUTATION_PROBABILITY        0.015
-#define     WIDTH                       49
-#define     STEPS_PER_FITNESS           WIDTH*2
-#define     FITNESS_TESTS_PER_INDV      100
-#define     GENERATIONS                 1000
-
+#define     DEBUG
+#ifdef DEBUG
+	#define		D(S) printf(S)
+#else
+	#define		D(S) ;
+#endif
 /* Memory */
-rule_t[POPULATION_SIZE] population;
-rule_t[POPULATION_SIZE] next_population;
-int generation;
-long t0;
+rule_t populations[2][POPULATION_SIZE];
+int p_buf;
+rule_t* population;
+
+
+unsigned int generation;
 
 int main(void) {
-//    t0 = System.currentTimeMillis();
+	D("HEI\n");
+    random_init();
+    D("random ferdig\n");
+	time_t t0,tn;
+    time(&t0);
+	D("time ferdig\n");
     start_GA();
+	D("ferdig med start_GA\n");
+    time(&tn);
 
-// TODO
-/*    long duration  = System.currentTimeMillis()-t0;
-    
-    String timestamp = String.format("%02d:%02d:%02d", 
-                       TimeUnit.MILLISECONDS.toHours(duration),
-                       TimeUnit.MILLISECONDS.toMinutes(duration) -  
-                       TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(duration)),
-                       TimeUnit.MILLISECONDS.toSeconds(duration) - 
-                       TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));   
-    
-    System.out.printf("Total duration: "+ timestamp);
-*/    
+    printf("Total duration: %d seconds\n", (unsigned int)(tn-t0));
 }
 
-void start_GA(void) {
+void start_GA(void) { 
+	D("inne i start_GA\n");
 #ifdef TEST_RULE
     //printRuleTest(new Rule(0x24981a0d6f83e2c9L, 0x1d716561593987b7L), 20); // TODO
     return;
@@ -46,20 +45,24 @@ void start_GA(void) {
     generateInitialPopulation();
     
     for (generation=1; generation<=GENERATIONS; generation++) {
-        makeNewGeneration();
+        make_new_generation();
     }
-    
-    rule_t winner = population[fittestIndividual()];
-    
+    int winner_index = fittestIndividual();
+    rule_t winner = population[winner_index];
+   
+	char buf[WIDTH+1];
+	rule_to_string(buf, &winner); 
     printf("--- [WINNER PICKED] ---\n");
-    printf("\t Winning rule: \t %s\n", winner); //TODO toString!
+    printf("\t Winning rule: \t %s\n", buf);
     
-    printGeneration();
-    printRuleTest(winner, 10);
+//    printGeneration();
+    printRuleTest(winner_index, 10);
 }
 
-void generateInitialPopulation() {
+void generateInitialPopulation(void) {
     int i;
+	p_buf = 0;
+	population = populations[p_buf];
     for (i=0; i<POPULATION_SIZE; i++) {
         random_rule(population+i);
     }
@@ -70,25 +73,26 @@ void generateInitialPopulation() {
  * probabilistically by their fitness.
  * Point 3 of page 7 in paper by Mitchell.
  */
-private void makeNewGeneration() {
+void make_new_generation() {
     int totalFitness = calculateFitnesses();
+	int i,j,k;
+	rule_t* next_population = populations[1-p_buf];
     
     if (generation % GENERATION_PRINT_SEQUENCE == 0) {
         printGeneration();
     }
     
     // Create new generation
-    for (int i=0; i<POPULATION_SIZE; i++) {
+    for (i=0; i<POPULATION_SIZE; i++) {
         
         int index1 = 0, index2 = 0;
-        int map1 = (int) (Math.random() * totalFitness);
-        int map2 = (int) (Math.random() * totalFitness);
-        boolean done1 = false;
-        boolean done2 = false;
-        Rule child;
+        int map1 = (int) random_max(totalFitness);
+        int map2 = (int) random_max(totalFitness);
+        bool done1 = false;
+        bool done2 = false;
         
         // Find individuals to mate
-        for (int j=0, k=0; j < POPULATION_SIZE; j++) {
+        for (j=0, k=0; j < POPULATION_SIZE; j++) {
             if (done1 && done2) break;
             
             k += population[j].fitness;
@@ -101,12 +105,11 @@ private void makeNewGeneration() {
                 done2 = true;
             }
         }
-        child = population[index1].mate(population[index2]);
-        nextPopulation[i] = child;
+		rule_mate(population+index1, population+index2, next_population + i);
     }
-    rule_t* tmp = population;
-    population = next_population;
-    next_population = tmp;
+
+	p_buf = 1-p_buf;
+	population = populations[p_buf];
 }
 
 /**
@@ -114,8 +117,9 @@ private void makeNewGeneration() {
  * @return fittestIndividual
  */
 int fittestIndividual() {
-    int fittest = 0
-    for (int i=1; i<POPULATION_SIZE; i++) {
+    int fittest = 0;
+	int i;
+    for (i=1; i<POPULATION_SIZE; i++) {
         if (population[i].fitness > population[fittest].fitness) {
             fittest = i;
         }
@@ -124,10 +128,13 @@ int fittestIndividual() {
 }
 
 #define PRINT_LIMIT (GENERATION_PRINT_AMOUNT < POPULATION_SIZE ? GENERATION_PRINT_AMOUNT : POPULATION_SIZE) 
-private void printGeneration() {
+void printGeneration() {
+	int i;
+	char rule_string[WIDTH+1];
     printf("Generation: %d\n", generation);
-    for (int i = 0; i<PRINT_LIMIT; i++) {
-        printf("Rule: %s   \tfitness: %d\n", population[i], population[i].fitness);
+    for (i = 0; i<PRINT_LIMIT; i++) {
+		rule_to_string(rule_string, population+i);
+        printf("Rule: %s   \tfitness: %d\n", rule_string, population[i].fitness);
     }
 }
 
@@ -139,10 +146,10 @@ private void printGeneration() {
 int calculateFitnesses() {
     int fitness;
     int totalFitness = 0;
-    int i;
-    for (i = 0; i < POPULATION_SIZE; i++) {
+    int i,j;
+    for (i=0; i < POPULATION_SIZE; i++) {
         fitness = 1;
-        for (int j=0; j<FITNESS_TESTS_PER_INDV; j++) {
+        for (j=0; j < FITNESS_TESTS_PER_INDV; j++) {
             if (singleFitness(i)) {
                 fitness++;
             }
@@ -156,10 +163,10 @@ int calculateFitnesses() {
 
 
 bool singleFitness(int individual) {
-    init_line(population + individual);
-    int[2] solution, result;
     int sOnes, rOnes, sZeroes, rZeroes;
-    count(&sOnes, &sZeroes);
+	int i;    
+	init_line(population + individual);
+    line_count(&sOnes, &sZeroes);
     if (sZeroes > sOnes) {
         sZeroes = sZeroes + sOnes;
         sOnes = 0;
@@ -168,39 +175,34 @@ bool singleFitness(int individual) {
         sZeroes = 0;
     }
 
-    for (int i=0; i<STEPS_PER_FITNESS; i++) {
-        if (!isStable()) {
-            next();
+    for (i=0; i<STEPS_PER_FITNESS; i++) {
+        if (!line_is_stable()) {
+            line_next();
         } else {
             break;
         }
     }
-    count(&rOnes, &rZeroes);
+    line_count(&rOnes, &rZeroes);
 
     return sZeroes == rZeroes && sOnes == rOnes;
 }
 
-int printRuleTest(rule_t* rule, int n) {
+int printRuleTest(int rule, int n) {
     if (n<0) exit(-1);
-    Line s;
-    population = new Rule[1];
-    population[0] = rule;
-    for (int i=0; i<n; i++) {
-        s = new Line(WIDTH, rule);
-        
-        for (int j=0; j<STEPS_PER_FITNESS; j++) {
-            s.print();
-            System.out.println();
-            if (!s.isStable()) {
-                s.next();
+	int i,j;
+    for (i=0; i<n; i++) {
+        init_line(population+rule);
+        for (j=0; j<STEPS_PER_FITNESS; j++) {
+            line_print();
+            printf("\n");
+            if (!line_is_stable()) {
+                line_next();
             } else {
                 break;
             }
         }
-        s.print();
-        System.out.println();
-        System.out.println("Sucess: " + String.valueOf(singleFitness(0)));
-        System.out.println();
+        line_print();
+        printf("\nSucess: %s\n\n", (singleFitness(rule)? "true" : "false"));
     }
 
 }

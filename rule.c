@@ -1,29 +1,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#define random_long() ((uint64_t) ((0xffffffffffffffffL/RAND_MAX)*rand()))
-
-typedef struct {
-    uint64_t h;
-    uint64_t l;
-    unsigned int fitness;
-} rule_t;
+#include "rule.h"
+#include "ga.h"
+#include "random.h"
 
 void random_rule(rule_t* this) {
     this->h = random_long();
     this->l = random_long();
 }
-
-/**
- * Instantiates a rule of given parameters
- * @param highEnd
- * @param lowEnd
- 
-public Rule(long h, long l) {
-    this.h = h;
-    this.l = l;
-}*/
 
 /**
  * Returns the effect of the given state according to given rule.
@@ -32,9 +17,9 @@ public Rule(long h, long l) {
  */
 int8_t rule_effect(rule_t* rule, unsigned int state) {
     if (state < 64) {
-        return (int8_t) ((rule->l >>> state) & 1); 
+        return (int8_t) ((rule->l >> state) & 1); 
     } else {
-        return (int8_t) ((rule->h >>> (state-64)) & 1);
+        return (int8_t) ((rule->h >> (state-64)) & 1);
     }
 }
 
@@ -43,8 +28,8 @@ int8_t rule_effect(rule_t* rule, unsigned int state) {
  * @param mate
  * @return child
  */
-void mate(rule_t* mate1, rule_t* mate2, rule_t* child) {
-    unsigned int pivot = random.nextInt(128); // TODO 
+void rule_mate(rule_t* mate1, rule_t* mate2, rule_t* child) {
+    unsigned int pivot = random_max(128);
     
     uint64_t newH = mate1->h;
     uint64_t newL = mate1->l;
@@ -69,8 +54,8 @@ void mate(rule_t* mate1, rule_t* mate2, rule_t* child) {
 /**
  * Mutates this rule
  */
-void mutate(rule_t* rule, unsigned int pos) {
-    if (Math.random() < GA.MUTATION_PROBABILITY) { // TODO
+void rule_mutate(rule_t* rule, unsigned int pos) {
+    if (rand() < MUTATION_PROBABILITY) {
         if (pos < 64) {
             rule->l ^= (1 << pos);
         } else {
@@ -79,15 +64,7 @@ void mutate(rule_t* rule, unsigned int pos) {
     }
 }
 
-int to_string(rule_t* rule, char* string) {
-    return sprintf(string, "%x%x", rule->h, rule->l);
+int rule_to_string(char* string, rule_t* rule) {
+    return sprintf(string, "%lx%lx", rule->h, rule->l);
 }
-
-
-/*
-@Deprecated
-private long getRandomLong() {
-    return (long)(double) (Math.random() * Integer.MAX_VALUE) | (long)(double) (Math.random() * Integer.MAX_VALUE) << 32;
-}
-*/
 
