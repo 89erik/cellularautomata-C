@@ -29,7 +29,7 @@ int8_t rule_effect(rule_t* rule, unsigned int state) {
  * @return child
  */
 void rule_mate(rule_t* mate1, rule_t* mate2, rule_t* child) {
-    unsigned int pivot = random_max(128);
+    unsigned int pivot = random_max(RULE_SIZE);
     
     uint64_t newH = mate1->h;
     uint64_t newL = mate1->l;
@@ -59,12 +59,25 @@ void rule_mutate(rule_t* rule, unsigned int pos) {
         if (pos < 64) {
             rule->l ^= (1 << pos);
         } else {
-            rule->h ^= (1 << pos-64);
+            rule->h ^= (1 << (pos-64));
         }
     }
 }
 
 int rule_to_string(char* string, rule_t* rule) {
     return sprintf(string, "%lx%lx", rule->h, rule->l);
+}
+
+void rule_to_string_bin(char* string, rule_t* rule) {
+	int i;
+	for (i=RULE_SIZE-1; i>=0; i--) {
+		if (i >= RULE_SIZE/2) {
+			string[i] = '0' + (rule->h >> (i-(RULE_SIZE/2))) & 1;
+		} else {
+			string[i] = '0' + (rule->l >> i) & 1;
+		}
+		//string[i] = '0';
+    }
+	string[RULE_SIZE] = '\0';
 }
 

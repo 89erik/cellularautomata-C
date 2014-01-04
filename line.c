@@ -5,8 +5,9 @@
 #include "ga.h"
 #include "cell.h"
 
-#define right_index(i) ((i+1) < WIDTH ? i+1 : 0)
-#define left_index(i) ((i-1) >= 0 ? i-1 : WIDTH-1)
+#define right_index(i) ((i+1) < WIDTH ? (i+1) : 0)
+#define left_index(i) ((i-1) >= 0 ? (i-1) : (WIDTH-1))
+
 
 rule_t* rule;
 bool line_has_ones;
@@ -51,11 +52,6 @@ void line_next() {
     }
 }
 
-bool line_is_stable() {
-    return line_has_ones ^ line_has_zeroes;
-}
-
-
 void line_count(unsigned int* ones, unsigned int* zeroes) {
     int i;
     *ones = 0;
@@ -66,9 +62,14 @@ void line_count(unsigned int* ones, unsigned int* zeroes) {
     }
 }
 
-void line_print() {
+bool line_is_stable(void) {
+	return (line_has_ones ^ line_has_zeroes);
+}
+
+void line_print(void) {
     int i;
     for (i=0; i<WIDTH; i++) {
         printf("%d", cells[i].value);
     }
+	printf("\n");
 }

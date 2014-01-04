@@ -19,12 +19,13 @@
 
 /* GA constants */
 #define     POPULATION_SIZE             500
-#define     MUTATION_PROBABILITY        0.015 * RAND_MAX //TODO verify math
+#define     MUTATION_PROBABILITY        (int) (0.015 * (double)RAND_MAX)
 #define     WIDTH                       49
 #define     STEPS_PER_FITNESS           WIDTH*2
 #define     FITNESS_TESTS_PER_INDV      100
 #define     GENERATIONS                 1000
 
+/* Prototypes */
 int  main(void);
 void start_GA(void);
 void generateInitialPopulation(void);

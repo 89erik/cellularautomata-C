@@ -62,8 +62,8 @@ void generateInitialPopulation(void) {
  * Point 3 of page 7 in paper by Mitchell.
  */
 void make_new_generation() {
-    int totalFitness = calculateFitnesses();
 	int i,j,k;
+    int totalFitness = calculateFitnesses();
 	rule_t* next_population = populations[1-p_buf];
     
     if (generation % GENERATION_PRINT_SEQUENCE == 0) {
@@ -78,7 +78,7 @@ void make_new_generation() {
         int map2 = (int) random_max(totalFitness);
         bool done1 = false;
         bool done2 = false;
-        
+ 
         // Find individuals to mate
         for (j=0, k=0; j < POPULATION_SIZE; j++) {
             if (done1 && done2) break;
@@ -97,7 +97,7 @@ void make_new_generation() {
     }
 
 	p_buf = 1-p_buf;
-	population = populations[p_buf];
+	population = next_population;
 }
 
 /**
@@ -118,10 +118,10 @@ int fittestIndividual() {
 #define PRINT_LIMIT (GENERATION_PRINT_AMOUNT < POPULATION_SIZE ? GENERATION_PRINT_AMOUNT : POPULATION_SIZE) 
 void printGeneration() {
 	int i;
-	char rule_string[WIDTH+1];
+	char rule_string[129];
     printf("Generation: %d\n", generation);
     for (i = 0; i<PRINT_LIMIT; i++) {
-		rule_to_string(rule_string, population+i);
+		rule_to_string_bin(rule_string, population+i);
         printf("Rule: %s   \tfitness: %d\n", rule_string, population[i].fitness);
     }
 }
@@ -166,13 +166,19 @@ bool singleFitness(int individual) {
     for (i=0; i<STEPS_PER_FITNESS; i++) {
         if (!line_is_stable()) {
             line_next();
+#ifdef FITNESS_DEBUG
+			line_print();
+#endif			
         } else {
             break;
         }
     }
     line_count(&rOnes, &rZeroes);
-
-    return sZeroes == rZeroes && sOnes == rOnes;
+	bool success = sZeroes == rZeroes && sOnes == rOnes;
+#ifdef FITNESS_DEBUG
+	printf("Success: %s\n\n", success? "true" : "false");
+#endif
+    return success; 
 }
 
 int printRuleTest(int rule, int n) {
@@ -192,6 +198,5 @@ int printRuleTest(int rule, int n) {
         line_print();
         printf("\nSucess: %s\n\n", (singleFitness(rule)? "true" : "false"));
     }
-
 }
 
