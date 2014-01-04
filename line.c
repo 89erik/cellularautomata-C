@@ -21,6 +21,8 @@ int init_line(rule_t* r) {
     for (i=0; i < WIDTH; i++) {
         cell_set_random_value(cells + i);
     }
+    line_has_ones = false;
+    line_has_zeroes = false;
 }
 
 unsigned int line_state_of_cell(int i) {
@@ -48,7 +50,11 @@ void line_next() {
         cell_set_next_value(cells+i, rule, line_state_of_cell(i));
     }
     for (i=0; i<WIDTH; i++) {
-        cell_go_to_next_state(cells+i);
+        if (cell_go_to_next_state(cells+i) == 1) {
+            line_has_ones = true;
+        } else {
+            line_has_zeroes = true;
+        }
     }
 }
 

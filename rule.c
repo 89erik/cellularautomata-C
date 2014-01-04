@@ -51,9 +51,6 @@ void rule_mate(rule_t* mate1, rule_t* mate2, rule_t* child) {
     rule_mutate(child, pivot);
 }
 
-/**
- * Mutates this rule
- */
 void rule_mutate(rule_t* rule, unsigned int pos) {
     if (rand() < MUTATION_PROBABILITY) {
         if (pos < 64) {
@@ -64,20 +61,20 @@ void rule_mutate(rule_t* rule, unsigned int pos) {
     }
 }
 
-int rule_to_string(char* string, rule_t* rule) {
+int rule_to_string(char string[], rule_t* rule) {
     return sprintf(string, "%lx%lx", rule->h, rule->l);
 }
 
-void rule_to_string_bin(char* string, rule_t* rule) {
+void rule_to_string_bin(char string[], rule_t* rule) {
 	int i;
 	for (i=RULE_SIZE-1; i>=0; i--) {
 		if (i >= RULE_SIZE/2) {
-			string[i] = '0' + (rule->h >> (i-(RULE_SIZE/2))) & 1;
+			string[i] = '0' + ((rule->h >> (i-(RULE_SIZE/2))) & 1);
 		} else {
-			string[i] = '0' + (rule->l >> i) & 1;
+			string[i] = '0' + ((rule->l >> i) & 1);
 		}
-		//string[i] = '0';
     }
 	string[RULE_SIZE] = '\0';
+    string = "hei";
 }
 

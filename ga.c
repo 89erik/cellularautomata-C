@@ -38,7 +38,7 @@ void start_GA(void) {
     int winner_index = fittestIndividual();
     rule_t winner = population[winner_index];
    
-	char buf[WIDTH+1];
+	char buf[RULE_SIZE+1];
 	rule_to_string(buf, &winner); 
     printf("--- [WINNER PICKED] ---\n");
     printf("\t Winning rule: \t %s\n", buf);
@@ -118,10 +118,10 @@ int fittestIndividual() {
 #define PRINT_LIMIT (GENERATION_PRINT_AMOUNT < POPULATION_SIZE ? GENERATION_PRINT_AMOUNT : POPULATION_SIZE) 
 void printGeneration() {
 	int i;
-	char rule_string[129];
+	char rule_string[RULE_SIZE+1];
     printf("Generation: %d\n", generation);
     for (i = 0; i<PRINT_LIMIT; i++) {
-		rule_to_string_bin(rule_string, population+i);
+		rule_to_string(rule_string, population+i);
         printf("Rule: %s   \tfitness: %d\n", rule_string, population[i].fitness);
     }
 }
