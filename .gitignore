@@ -1,5 +1,9 @@
 *~
+*.swp
 exe/
 lst/
 build/
+
+a.out
+test.c
 
