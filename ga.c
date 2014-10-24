@@ -93,7 +93,8 @@ void make_new_generation() {
                 done2 = true;
             }
         }
-		rule_mate(population+index1, population+index2, next_population + i);
+		rule_mate(population+index1, population+index2, next_population+i, next_population+i+1);
+        i++;
     }
 
 	p_buf = 1-p_buf;
@@ -138,9 +139,7 @@ int calculateFitnesses() {
     for (i=0; i < POPULATION_SIZE; i++) {
         fitness = 1;
         for (j=0; j < FITNESS_TESTS_PER_INDV; j++) {
-            if (singleFitness(i)) {
-                fitness++;
-            }
+            fitness += singleFitness(i);
         }
         population[i].fitness = fitness; 
         totalFitness += fitness;

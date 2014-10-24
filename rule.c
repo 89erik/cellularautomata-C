@@ -23,40 +23,57 @@ int8_t rule_effect(rule_t* rule, unsigned int state) {
     }
 }
 
+#include <stddef.h>
+#define rule_fraction(rule, offset) (uint64_t*) (((void*) rule) + offset)
+#define H64 0xffffffffffffffffL
+
 /**
- * Returns a possibly mutated child of this rule and given mate.
+ * Returns two children of this rule and given mate.
+ * They may be mutated.
  * @param mate
  * @return child
  */
-void rule_mate(rule_t* mate1, rule_t* mate2, rule_t* child) {
-    unsigned int pivot = random_max(RULE_SIZE);
-    
-    uint64_t newH = mate1->h;
-    uint64_t newL = mate1->l;
-    uint64_t mask;
+void rule_mate(rule_t* mate1, rule_t* mate2, rule_t* child1, rule_t* child2) {
 
-    if (pivot < 64) {
-        mask = 0xffffffffffffffffL << pivot;
-        newL &= ~mask;
-        newL |= (mate2->l & mask);
-        newH = mate2->h;
-    } else {
-        mask = 0xffffffffffffffffL << (pivot-64);
-        newH &= ~mask;
-        newH |= (mate2->h & mask);
+    if (!(rand() < CROSSOVER_PROBABILITY)) {
+        *child1 = *mate1;
+        *child2 = *mate2;
     }
-    
-    child->h = newH;
-    child->l = newL;
-    rule_mutate(child, pivot);
+
+    unsigned int pivot = random_max(RULE_SIZE);
+
+    unsigned long int pivoted;
+    unsigned long int pure;
+
+    if (! (pivot < 64)) {
+        pure    = offsetof(rule_t, h);
+        pivoted = offsetof(rule_t, l);
+    } else {
+        pure    = offsetof(rule_t, l);
+        pivoted = offsetof(rule_t, h);
+    }
+
+    *rule_fraction(child1, pure) = *rule_fraction(mate1, pure);
+    *rule_fraction(child2, pure) = *rule_fraction(mate2, pure);
+
+    *rule_fraction(child1, pivoted) = 
+          *rule_fraction(mate1, pivoted) & (H64 << pivot)
+        | *rule_fraction(mate2, pivoted) & (H64 >> (64-pivot));
+
+    *rule_fraction(child2, pivoted) = 
+          *rule_fraction(mate2, pivoted) & (H64 << pivot)
+        | *rule_fraction(mate1, pivoted) & (H64 >> (64-pivot));
+
+    rule_mutate(child1, random_max(RULE_SIZE));
+    rule_mutate(child2, random_max(RULE_SIZE));
 }
 
 void rule_mutate(rule_t* rule, unsigned int pos) {
     if (rand() < MUTATION_PROBABILITY) {
         if (pos < 64) {
-            rule->l ^= (1 << pos);
+            (rule->l) ^= (1 << pos);
         } else {
-            rule->h ^= (1 << (pos-64));
+            (rule->h) ^= (1 << (pos-64));
         }
     }
 }
